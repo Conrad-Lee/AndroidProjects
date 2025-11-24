@@ -1,0 +1,28 @@
+<!-- dialog_avatar_selection.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <ImageView
+        android:id="@+id/ivAvatar1"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/avatar1"
+        android:layout_gravity="center" />
+
+    <ImageView
+        android:id="@+id/ivAvatar2"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/avatar2"
+        android:layout_gravity="center" />
+
+    <ImageView
+        android:id="@+id/ivAvatar3"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/avatar3"
+        android:layout_gravity="center" />
+</LinearLayout>

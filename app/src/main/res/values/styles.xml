@@ -1,0 +1,7 @@
+<resources>
+    <style name="BottomNavTextStyle" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">50sp</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+</resources>
