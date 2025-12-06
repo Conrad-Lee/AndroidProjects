@@ -63,6 +63,7 @@
             <include layout="@layout/item_setting" />
             <include layout="@layout/item_setting" />
             <include layout="@layout/item_setting" />
+            <include layout="@layout/item_setting" />
         </LinearLayout>
 
         <!-- 退出登录 -->

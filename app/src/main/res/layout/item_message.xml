@@ -1,11 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="16dp"
     android:layout_marginTop="8dp"
-
-    android:radius="8dp">
+    android:radius="8dp"
+    android:background="@color/default_message_background"> <!-- 设置默认背景 -->
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,21 +15,14 @@
 
         <!-- 头像 -->
         <ImageView
+            android:id="@+id/ivAvatar"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/avatar1"
+            android:src="@drawable/default_avatar"
             android:layout_gravity="start"
             android:layout_marginEnd="8dp" />
 
-        <!-- 在线状态 -->
-
         <!-- 消息内容区域 -->
-        <ImageView
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:layout_marginEnd="8dp"
-             />
-
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -41,6 +33,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/tvName"
                 android:text="地瓜丸如..."
                 android:textColor="#FFFFFF"
                 android:textSize="16sp"
@@ -51,6 +44,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/tvContent"
                 android:text="Go back to the 2049"
                 android:textColor="#BDBDBD"
                 android:textSize="14sp"
@@ -72,9 +66,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/tvUnread"
             android:text="4"
             android:textColor="#FFFFFF"
-
             android:layout_gravity="end"
             android:paddingStart="4dp"
             android:paddingEnd="4dp"

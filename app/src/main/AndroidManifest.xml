@@ -3,7 +3,13 @@
     package="com.bytedance.firstDemo"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- ✅ 必须加：网络权限，否则 Retrofit/OkHttp 会直接崩 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- ✅ 建议加：方便后续判断网络状态（可选但推荐） -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
+        android:name=".App"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -12,8 +18,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+
         <activity
-            android:name=".ui.splash.SplashActivity"
+            android:name=".splash.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -22,17 +29,33 @@
         </activity>
 
         <activity
-            android:name=".ui.home.HomeActivity"
+            android:name=".feature.home.HomeActivity"
             android:exported="true" />
 
         <activity
-            android:name=".ui.upload.UploadActivity"
-            android:exported="true"
-            />
-
-        <activity android:name=".ui.login.LoginActivity"
+            android:name=".feature.upload.UploadFragment"
             android:exported="true" />
-        <activity android:name=".ui.login.RegisterActivity"
+
+        <activity
+            android:name=".feature.login.LoginActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".feature.login.RegisterActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".feature.chat.ChatActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".feature.search.SearchActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.weather.WeatherDetailActivity"
+            android:exported="true" />
+        <activity
+            android:name=".feature.dashboard.DashboardActivity"
             android:exported="true" />
 
     </application>

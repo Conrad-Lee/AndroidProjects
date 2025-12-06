@@ -12,6 +12,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        <!-- 这里动态 addView() item_message.xml -->
+
     </LinearLayout>
 </HorizontalScrollView>
