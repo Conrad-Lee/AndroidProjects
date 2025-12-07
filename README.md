@@ -248,6 +248,46 @@ app/
 | value     | TEXT                            | 扩展数据（JSON）                   |
 | timestamp | LONG                            | 事件发生时间戳                     |
 
+### 3.数据库升级代码示例
+```
+/**
+     * 数据库版本号：
+     * v6：新增 system_message 表
+     * v7：message 增加 msgType
+     * v8：friend 表增加 isPinned / isHidden
+     * v9：message 表增加 imagePath / actionText / actionPayload
+     */
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+        if (oldVersion < 7) {
+            try {
+                db.execSQL("ALTER TABLE message ADD COLUMN msgType INTEGER DEFAULT 1");
+            } catch (Exception ignored) {}
+        }
+
+        // v8 增加 isPinned / isHidden
+        if (oldVersion < 8) {
+            try {
+                db.execSQL("ALTER TABLE friend ADD COLUMN isPinned INTEGER DEFAULT 0");
+                db.execSQL("ALTER TABLE friend ADD COLUMN isHidden INTEGER DEFAULT 0");
+            } catch (Exception ignored) {}
+        }
+
+        // v9：给 message 增加 imagePath / actionText / actionPayload
+        if (oldVersion < 9) {
+            try {
+                db.execSQL("ALTER TABLE message ADD COLUMN imagePath TEXT");
+            } catch (Exception ignored) {}
+            try {
+                db.execSQL("ALTER TABLE message ADD COLUMN actionText TEXT");
+            } catch (Exception ignored) {}
+            try {
+                db.execSQL("ALTER TABLE message ADD COLUMN actionPayload TEXT");
+            } catch (Exception ignored) {}
+        }
+    }
+```
 ## 遇到的问题与解决方案
 
 ### 1. 会话列表出现遗漏或排序异常
