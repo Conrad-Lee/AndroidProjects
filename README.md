@@ -1,12 +1,14 @@
+# ByteDance Growth Camp Assignment — IM & Dashboard Demo
 
-By Conrad Lee — ByteDance Growth Camp Assignment
-本项目模拟抖音消息体系的核心能力，包括：消息列表、好友会话、置顶、备注、搜索、聊天界面、系统消息、动态插入、弱网体验、数据埋点、可视化数据看板等功能。
+本项目实现了一个简化版的抖音消息体系，包括：消息列表、好友会话、聊天界面、置顶与备注、搜索、动态消息中心、弱网模拟、行为埋点与可视化数据看板等功能。
 
-采用 MVVM + Repository + SQLite 架构，支持持久化、可扩展、模块化开发。
+采用 **MVVM + Repository + SQLite** 架构，以本地模拟服务端，实现持久化、可扩展的消息系统。
 
-## 📂 目录
+---
 
-- [项目结构 (Architecture Overview)](#项目结构-architecture-overview)
+## 📂 目录（Table of Contents）
+
+- [项目结构 (Architecture Overview)](#项目结构)
 - [核心功能 (Features)](#核心功能-features)
   - [消息列表页](#消息列表页)
   - [聊天页面](#聊天页面)
@@ -14,317 +16,237 @@ By Conrad Lee — ByteDance Growth Camp Assignment
   - [消息搜索](#消息搜索)
   - [弱网体验](#弱网体验)
   - [动态消息中心](#动态消息中心)
-  - [数据看板（自由探索亮点）](#数据看板自由探索亮点)
-- [附加功能 (Features)](#附加功能-features)
-  - [全国天气](#全国天气)
-  - [登录注册](#登录注册)
-- [技术难点与解决方案 (Key Challenges)](#技术难点与解决方案-key-challenges)
-- [数据库设计 (SQLite Schema)](#数据库设计-sqlite-schema)
-- [消息中心 / 动态插入机制](#消息中心-动态插入机制)
-- [运行方式 (How to Run)](#运行方式-how-to-run)
-- [截图展示 (Screenshots)](#截图展示-screenshots)
-- [License](#license)
+  - [数据看板](#数据看板)
+- [技术栈](#技术栈)
+- [数据库设计与迁移方案](#数据库设计与迁移方案)
+- [遇到的问题与解决方案](#遇到的问题与解决方案)
+- [运行方式](#运行方式)
 
-## 🏗 项目结构 (Architecture Overview)
+---
 
-本项目采用 **MVVM + Repository + SQLite** 的架构设计，将各类业务按 Feature 模块切分，便于扩展与重构。
+## 项目结构
+
+项目按照功能模块划分，以 MVVM + Repository 层级组织：
+
+
 
 ```text
 app/
  ├── core/
- │     ├── db/                # SQLite 数据库相关（DAO + Repository + Helper）
- │     ├── metrics/           # 埋点系统（事件上报、行为分析、可视化数据）
- │     ├── network/           # Retrofit 网络层（天气模块）
- │     └── utils/             # 通用工具类（时间、Json、Highlight 等）
+ │     ├── db/                # SQLite（初始化、DAO、迁移）
+ │     ├── metrics/           # 埋点事件、数据聚合、分析工具
+ │     ├── network/           # Retrofit（天气模块）
+ │     └── utils/             # 工具类（时间、JSON、高亮）
  │
  ├── data/
- │     ├── model/             # 数据模型（消息、好友、系统消息等）
- │     ├── repository/        # 数据仓库（MessageRepo / FriendRepo / SystemRepo）
- │     └── user/              # 登录态管理
+ │     ├── model/             # 数据模型
+ │     ├── repository/        # 数据访问层
+ │     └── user/              # 登录态维护
  │
  ├── feature/
- │     ├── message/           # 消息列表页（混排、置顶、搜索、埋点、弱网模拟）
- │     ├── chat/              # 聊天页（文本/图片/运营类消息）
- │     ├── dashboard/         # 数据看板（图表、趋势分析、行为分析）
- │     ├── search/            # 消息搜索（关键词高亮、跳转）
- │     ├── weather/           # 全国天气（进阶示例）
+ │     ├── message/           # 消息列表、置顶、隐藏、弱网、搜索入口
+ │     ├── chat/              # 聊天页（文本/图片/运营卡片）
+ │     ├── dashboard/         # 数据看板（三页结构 + 图表）
+ │     ├── search/            # 搜索（命中高亮、定位会话）
+ │     ├── weather/           # 天气示例模块
  │     ├── login/             # 登录注册
  │     └── mine/              # 我的页面（数据看板入口）
  │
- ├── widget/                  # 自定义控件、自定义弹窗
- ├── assets/                  # 本地 JSON 数据模拟消息
- └── ...
+ └── widget/                  # 弹窗组件、自定义视图
+
 ```
-## ✨ 核心功能 (Features)
+---
 
-本项目模拟抖音消息体系，在消息混排、好友会话、备注管理、搜索体验、弱网处理等方面进行了实现，并通过数据埋点构建了行为洞察的数据看板。
-下面按功能模块逐一介绍。
-### 📨 消息列表页
+## 核心功能 (Features)
 
-- 好友消息 + 系统消息混排列表（支持不同类型的气泡展示）
-- 展示：头像、昵称 / 备注、摘要、时间文案、未读角标
-- 点击进入会话
-- 长按弹窗操作：置顶、取消置顶、不显示、删除、设置备注
-- 下拉刷新（支持弱网模拟）
-- 上滑加载更多（模拟分页）
-- 支持系统消息插入（如互动提醒）
-- 根据好友备注动态刷新 UI
-### 💬 聊天页面
-
-- 支持三类消息：
-  - 纯文本消息
-  - 图片消息
-  - 运营类消息（带按钮 CTA）
-- 自动根据消息类型切换不同布局（左/右气泡）
-- 自动滚动到底部
-- 输入框伸缩
-- 支持时间分段标题（例如 “昨天”、“星期一”）
-### 👤 好友备注
-
-- 长按任意消息进入备注页
-- 可编辑好友备注（实时写入 SQLite）
-- 冷启动后自动恢复备注
-- 若备注为空，展示原始昵称
-### 🔍 消息搜索
-
-- 搜索范围：
-  - 好友昵称 / 备注
-- 支持模糊搜索、高亮命中关键词
-- 搜索结果列表复用消息列表 UI
-- 点击进入消息详情页（展示关键词附近消息）
-### 📡 弱网体验
-
-- 首次加载随机触发弱网（概率可调整）
-- Loading → Error → Retry 
-- 点击“重试”重新加载
-### 🔁 动态消息中心
-
-- 每 5 秒自动生成一条新消息
-- 自动写入 SQLite
-- 列表自动刷新并滚动到顶部
-- 未读数实时更新
-- 支持好友消息 / 系统消息
-### 📊 数据看板（Dashboard）
-
-- 埋点构建用户行为数据
-- 数据分模块展示
-- 三页卡片结构：
-  1. 原始数据（曝光数、进入次数、点击次数…）
-  2. 计算后的行为指标（CTR、停留意愿评分…）
-  3. 图表展示（MPAndroidChart）
-- 可视化图包括：
-  - 饼图
-  - 折线图
-  - 柱状图
-- 动态更新（调用 MetricsAnalyzer）
-## ⚙️ 技术栈（Technical Stack）
-
-本项目的技术栈基于现代 Android 客户端开发体系，由架构层、数据层、UI 层、系统层、网络层与工具层组成，覆盖 IM、搜索、埋点与可视化等完整场景。
+### 消息列表页
+- 好友消息 + 系统消息混排  
+- 展示头像、昵称/备注、摘要、时间文案、未读  
+- 下拉刷新、上滑加载更多（模拟分页）  
+- 系统消息自动插入  
+- 支持置顶、取消置顶、删除、隐藏  
+- 根据备注动态更新 UI  
 
 ---
 
-## 1. 架构层（Architecture Layer）
-
-### **1.1 MVVM（Model–View–ViewModel）**
-- 使用 ViewModel 管理状态与业务逻辑。
-- View 与数据解耦，通过 LiveData/Observer 通信。
-- Repository 统一提供数据访问。
-
-### **1.2 Repository Pattern**
-- 所有业务数据（消息、好友、系统消息、搜索、天气、埋点）均通过 Repository 提供。
-- 完成对 SQLite、本地 JSON 与网络的抽象封装。
-
-### **1.3 模块化 Feature 分层**
-- `feature/message`, `feature/chat`, `feature/search`, `feature/dashboard`, etc.
-- 按业务领域进行拆分。
+### 聊天页面
+- 文本消息、图片消息、运营消息三类布局  
+- 自动切换左右气泡  
+- 自动滚动到底部  
+- 输入框适配  
+- 时间分段条自动插入  
 
 ---
 
-## 2. 数据层（Data Layer）
-
-### **2.1 SQLite 本地数据库**
-- 采用 SQLite 存储核心数据：消息、好友、系统消息、埋点、用户信息。
-- 使用文本/整型字段并配合索引排序。
-- 使用 LIMIT/OFFSET、LIKE 实现分页与搜索。
-
-### **2.2 数据模型化**
-- 使用如 MessageModel、FriendModel、SystemMessageModel 等结构化数据模型进行序列化与业务表达。
-
-### **2.3 数据源融合策略**
-- 首次加载使用 assets JSON 初始化。
-- 日常使用 SQLite 持久化所有动态数据。
+### 好友备注
+- 长按消息进入备注页  
+- 可编辑备注并写入 SQLite  
+- 冷启动自动恢复  
 
 ---
 
-## 3. UI 层（Presentation Layer）
-
-### **3.1 RecyclerView 多类型列表**
-- 展示消息、搜索结果、天气、仪表盘等。
-- 使用 `getItemViewType()` 支持多布局切换。
-
-
-### **3.2 自定义弹窗组件**
-- 包含备注、会话操作、头像选择等场景。
+### 消息搜索
+- 按昵称、备注、内容搜索  
+- 关键词高亮  
+- 结果按会话分组  
+- 可跳转定位到具体消息区间  
 
 ---
 
-## 4. 系统层（System）
-
-### **4.1 Handler 定时消息调度**
-- 模拟消息中心周期性推送消息。
-
-### **4.2 生命周期驱动逻辑**
-- 页面停留时长、弱网加载、埋点记录基于生命周期控制。
-
-### **4.3 行为埋点系统（MetricsCenter）**
-- 记录曝光、进入、停留、点击等行为事件。
-- MetricsAnalyzer 用于数据聚合与指标计算。
+### 弱网体验
+- 首刷随机模拟弱网  
+- 加载 → 失败 → 重试流程  
+- Skeleton 占位 UI  
 
 ---
 
-## 5. 网络层（Networking）
-
-### **5.1 Retrofit**
-- 天气模块使用 Retrofit + Gson 进行网络请求。
-- Repository 封装网络到 UI 的状态转换。
-
----
-
-## 6. 工具（Utility）
-
-### **6.1 TimeUtils**
-- 统一处理消息时间格式与聊天时间切片。
-
-### **6.2 HighlightHelper**
-- 搜索关键词高亮。
-
-### **6.3 AvatarUtils**
-- 本地头像加载与随机头像生成。
+### 动态消息中心
+- 每 5 秒自动插入消息  
+- 写入 SQLite → UI 自动刷新  
+- 未读数实时更新  
+- 新消息自动滚动至顶部  
 
 ---
 
-## 📦 3. 数据库设计与迁移方案（SQLite Schema & Migration）
-
-本项目的消息体系与埋点体系均基于 SQLite，本地数据库承担了会话列表、聊天记录、用户信息、系统消息、埋点数据的全部持久化职责。
+### 数据看板
+- 展示曝光、进入、点击、停留等多维指标  
+- 原始数据 → 二级指标 → 图表展示三页结构  
+- MPAndroidChart（饼图/折线图/柱状图）  
+- MetricsAnalyzer 聚合行为数据  
 
 ---
 
-### 3.1 数据表结构（Schema Overview）
+## 技术栈
 
-数据库包含以下核心表：
+### 架构层
+- **MVVM**：ViewModel 管理状态，View 只渲染 UI  
+- **Repository**：统一封装 SQLite / JSON / 网络  
+- **模块化特性分层**：按业务拆分 message/chat/search/dashboard 等模块  
 
-| 表名 | 作用 |
+### 数据层
+- **SQLite 本地存储**：消息、好友、系统消息、埋点、用户  
+- **分页（LIMIT/OFFSET）与搜索（LIKE）**  
+- **结构化模型化数据**：MessageModel / FriendModel / MetricEvent  
+- **数据源融合**：assets 初始化 + SQLite 持久化  
+
+### UI 层
+- **RecyclerView 多类型布局**：消息/搜索/天气/看板  
+- **自定义弹窗**：备注、会话操作、头像选择  
+- **ViewPager2**：用于看板多页结构  
+
+### 系统层
+- **Handler 定时任务**：模拟服务端推送消息  
+- **Fragment 生命周期驱动逻辑**：停留时长、弱网、刷新  
+- **MetricsCenter 本地埋点系统**：行为事件 + 指标聚合  
+
+### 网络层
+- **Retrofit + Gson**：全国天气示例模块  
+- Repository 层转换网络响应状态  
+
+### 工具层
+- TimeUtils：聊天时间格式化  
+- HighlightHelper：搜索关键词高亮  
+- AvatarUtils：头像加载与随机生成  
+
+---
+
+## 数据库设计与迁移方案
+
+本项目基于 SQLite 构建完整消息系统、用户体系、埋点体系的数据持久化结构。所有关键业务数据均采用本地数据库存储，以便实现冷启动恢复、历史消息加载、搜索、行为统计等功能。
+
+---
+
+## 1. 数据库结构概览
+
+项目包含以下核心数据表：
+
+| 表名 | 描述 |
 |------|------|
-| `messages` | 好友会话的聊天消息（文本 / 图片 / 运营卡片） |
-| `system_messages` | 系统侧推送的消息（互动提醒等） |
-| `friends` | 好友信息（昵称、备注、头像、未读数、置顶标记） |
-| `user` | 登录状态信息 |
-| `metrics` | 埋点事件（页面曝光、点击、停留时长等） |
+| **messages** | 聊天记录（文本 / 图片 / 运营卡片 / 时间提示） |
+| **system_messages** | 系统推送消息（例如互动提醒） |
+| **friends** | 好友详情（备注、头像、未读、置顶、隐藏） |
+| **user** | 登录态与用户信息 |
+| **metrics** | 埋点事件（曝光、点击、进入、停留时长等） |
 
 ---
 
-### 3.2 各表字段结构
+## 2. 各表字段结构
 
-#### **messages**
-
-| 字段 | 类型 | 说明 |
-|------|--------|--------|
-| id | INTEGER PRIMARY KEY | 自增主键 |
-| sessionId | TEXT | 会话唯一标识（friend_xxx） |
-| senderId | INTEGER | 发送者 |
-| type | INTEGER | 消息类型（文本/图片/运营卡片/时间条） |
-| content | TEXT | 消息内容 |
-| imageUrl | TEXT | 图片地址（可为空） |
-| timestamp | LONG | 发送时间戳 |
-| showTime | INTEGER | 是否为“时间提示”消息 |
-
-索引：  
-- `CREATE INDEX idx_messages_session ON messages(sessionId, timestamp DESC);`
+以下为所有表的字段与功能说明。
 
 ---
 
-#### **system_messages**
+### **2.1 messages（聊天记录表）**
 
-| 字段 | 类型 | 说明 |
-|------|--------|--------|
-| id | INTEGER PRIMARY KEY |
-| type | INTEGER | 系统消息类型 |
-| content | TEXT | 消息内容 |
-| extra | TEXT | 附加数据（JSON） |
-| timestamp | LONG | 时间戳 |
+用于存储会话内的所有消息，包括时间提示项。
 
----
+| 字段名 | 类型 | 说明 |
+|--------|--------|------------------------------------------------|
+| id | INTEGER PRIMARY KEY AUTOINCREMENT | 唯一主键 |
+| sessionId | TEXT | 会话 ID，格式：`friend_{id}` |
+| senderId | INTEGER | 发送者用户 ID |
+| type | INTEGER | 消息类型（0 文本 / 1 图片 / 2 运营卡片 / 3 时间提示） |
+| content | TEXT | 文本消息内容 |
+| imageUrl | TEXT | 图片 URL（图片消息使用） |
+| timestamp | LONG | 发送时间戳（毫秒） |
+| showTime | INTEGER | 是否为时间提示（1 是 / 0 否） |
 
-#### **friends**
+### **2.2 system_messages（系统消息表）**
 
-| 字段 | 类型 | 说明 |
-|------|--------|--------|
-| id | INTEGER PRIMARY KEY |
-| nickname | TEXT |
-| remark | TEXT | 好友备注 |
-| avatar | TEXT |
-| unread | INTEGER | 未读数 |
-| isPinned | INTEGER | 是否置顶（0/1） |
-| isHidden | INTEGER | 是否隐藏（0/1） |
+用于存储系统推送（如互动提醒）。
 
----
-
-#### **metrics**
-
-| 字段 | 类型 | 说明 |
-|------|--------|--------|
-| id | INTEGER PRIMARY KEY |
-| module | TEXT | 所属功能模块 |
-| event | TEXT | 事件类型 |
-| value | TEXT | 扩展数值（JSON） |
-| timestamp | LONG | 事件时间戳 |
+| 字段名     | 类型                           | 说明                     |
+|------------|--------------------------------|--------------------------|
+| id         | INTEGER PRIMARY KEY AUTOINCREMENT | 主键                     |
+| type       | INTEGER                        | 系统消息类型（如互动=1） |
+| content    | TEXT                           | 文本内容                 |
+| extra      | TEXT                           | 扩展 JSON 数据           |
+| timestamp  | LONG                           | 推送时间戳               |
 
 ---
 
-### 3.3 Schema 设计特点
+### **2.3 friends（好友信息表）**
 
-- 所有消息类表统一采用 `timestamp` 驱动排序。  
-- 会话设计围绕 `sessionId` 组织，会话列表与聊天记录共用该字段。  
-- 未读数不依赖消息表动态计算，而直接存入 friends 表，提升读取性能。  
-- 埋点系统采用极轻量的 key-value 类型 schema，便于扩展。
+维护好友的展示信息及状态。
+
+| 字段名   | 类型              | 说明                         |
+|----------|-------------------|------------------------------|
+| id       | INTEGER PRIMARY KEY | 好友 ID                      |
+| nickname | TEXT              | 原始昵称                     |
+| remark   | TEXT              | 备注名                       |
+| avatar   | TEXT              | 头像地址                     |
+| unread   | INTEGER           | 未读数量                     |
+| isPinned | INTEGER           | 是否置顶（1=置顶）           |
+| isHidden | INTEGER           | 是否隐藏（1=隐藏）           |
 
 ---
 
-### 3.4 SQLite Migration 方案
+### **2.4 user（用户登录态）**
 
-项目内置了一次示例迁移方案：**为 friends 表增加 isPinned 字段**。
+记录当前登录用户。
 
-迁移步骤如下：
+| 字段名   | 类型              | 说明                         |
+|----------|-------------------|------------------------------|
+| id       | INTEGER PRIMARY KEY | 用户 ID                      |
+| username | TEXT              | 用户名                       |
+| password | TEXT              | 密码（示例项目明文存储）     |
+| avatar   | TEXT              | 头像 URL                     |
 
-```sql
-/**
-     * 数据库版本号：
-     * v6：新增 system_message 表
-     * v7：message 增加 msgType
-     * v8：friend 表增加 isPinned / isHidden
-     */
--- 1. 创建临时表
-CREATE TABLE friends_temp(
-    id INTEGER PRIMARY KEY,
-    nickname TEXT,
-    remark TEXT,
-    avatar TEXT,
-    unread INTEGER,
-    isPinned INTEGER DEFAULT 0,
-    isHidden INTEGER DEFAULT 0
-);
+---
 
--- 2. 拷贝旧数据
-INSERT INTO friends_temp(id, nickname, remark, avatar, unread, isPinned, isHidden)
-SELECT id, nickname, remark, avatar, unread, 0, 0 FROM friends;
+### **2.5 metrics（埋点事件表）**
 
--- 3. 删除旧表
-DROP TABLE friends;
+用于记录用户行为事件，供 Dashboard 分析使用。
 
--- 4. 重命名新表
-ALTER TABLE friends_temp RENAME TO friends;
-```
-## 🛠 遇到的问题与解决方案（Key Issues & Solutions）
+| 字段名    | 类型                            | 说明                              |
+|-----------|---------------------------------|-----------------------------------|
+| id        | INTEGER PRIMARY KEY AUTOINCREMENT | 主键                               |
+| module    | TEXT                            | 所属功能模块（message/chat/...）   |
+| event     | TEXT                            | 事件类型（expose/enter/click/stay）|
+| value     | TEXT                            | 扩展数据（JSON）                   |
+| timestamp | LONG                            | 事件发生时间戳                     |
+
+## 遇到的问题与解决方案
 
 ### 1. 会话列表出现遗漏或排序异常
 
@@ -412,3 +334,24 @@ ALTER TABLE friends_temp RENAME TO friends;
 - 在分页场景下禁用自动滚动到底部，只在“发送消息”操作时启用。
 
 ---
+
+## 运行方式
+
+本项目为 Android 原生应用，基于 **Android Studio + Gradle** 开发。  
+代码完全本地运行，不依赖远端服务器（消息数据、埋点、用户信息等均基于 SQLite 本地存储）。
+
+### **1. 环境要求**
+
+| 工具 | 版本建议 |
+|------|----------|
+| Android Studio | Arctic Fox / Bumblebee / Electric Eel 及以上 |
+| JDK | 1.8 或 11 |
+| Gradle | 项目自带 Wrapper |
+| Android SDK | 24+（最低支持 Android 7.0） |
+
+---
+
+### **2. 克隆项目**
+
+```bash
+git clone https://github.com/Conrad-Lee/AndroidProjects.git
