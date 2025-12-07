@@ -1,4 +1,4 @@
-# ByteDance Growth Camp Assignment — IM & Dashboard Demo
+# 抖音增长客户端方向 — IM & Dashboard
 
 本项目实现了一个简化版的抖音消息体系，包括：消息列表、好友会话、聊天界面、置顶与备注、搜索、动态消息中心、弱网模拟、行为埋点与可视化数据看板等功能。
 
